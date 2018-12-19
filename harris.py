@@ -79,7 +79,7 @@ def _get_harris_points(harris_im, min_dist = 10, threshold = 0.1):
     
     return filtered_corrds
     
-def _plot_harris_points(image, filtered_corrds, figsize = (10,7)):
+def _plot_harris_points(image, filtered_corrds, figsize = (10,7), cmap = 'gray'):
     '''Plots Harris points on the image
     
     image: np.array
@@ -93,7 +93,7 @@ def _plot_harris_points(image, filtered_corrds, figsize = (10,7)):
     '''
     plt.figure(figsize = figsize)
     plt.axis('off')
-    plt.imshow(image)
+    plt.imshow(image, cmap = cmap)
     plt.plot([p[1] for p in filtered_corrds], [p[0] for p in filtered_corrds], '*')
     
 class Harris:
@@ -110,7 +110,7 @@ class Harris:
         self.fit_points = _get_harris_points(harris_im, min_dist, threshold)
         
     def plot(self, figsize = (10,7)):
-        _plot_harris_points(self.im, self.fit_points, figsize)
+        _plot_harris_points(self.im, self.fit_points, figsize, cmap = 'gray')
         
     def points(self):
         return self.fit_points
