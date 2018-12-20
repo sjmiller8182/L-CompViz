@@ -95,22 +95,42 @@ def _plot_harris_points(image, filtered_corrds, figsize = (10,7), cmap = 'gray')
     plt.axis('off')
     plt.imshow(image, cmap = cmap)
     plt.plot([p[1] for p in filtered_corrds], [p[0] for p in filtered_corrds], '*')
-    
+
+def _find_corresponding_points(twosided = True):
+        # TODO
+        pass
+
 class Harris:
     '''Harris corner detector
     '''
     
     def __init__(self):
         self.im = None
-        self.fit_points = None
+        self.fit_points = list()
+        self.corresponding_points = list()
         
     def fit(self, im, sigma = 3, min_dist = 10, threshold = 0.1):
+        '''Run Harris detector on images in list
+        '''
+        if 'list' not in str(type(im)):
+            im = [im]
         self.im = im
-        harris_im = _compute_harris_response(im, sigma)
-        self.fit_points = _get_harris_points(harris_im, min_dist, threshold)
+        
+        for im in self.im:
+            harris_im = _compute_harris_response(im, sigma)
+            self.fit_points.append(_get_harris_points(harris_im, min_dist, threshold))
         
     def plot(self, figsize = (10,7)):
+        ''' TODO: Update to deal with list
+        '''
         _plot_harris_points(self.im, self.fit_points, figsize, cmap = 'gray')
         
-    def points(self):
+    def get_points(self):
+        '''Return the Harris points
+        '''
         return self.fit_points
+        
+    def get_im()
+        '''Return the images used
+        '''
+        return self.im
