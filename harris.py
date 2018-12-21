@@ -97,31 +97,75 @@ def _plot_harris_points(image, filtered_corrds, figsize = (10,7), cmap = 'gray')
     plt.plot([p[1] for p in filtered_corrds], [p[0] for p in filtered_corrds], '*')
 
 def _find_corresponding_points(twosided = True):
-        # TODO
-        pass
+    # TODO
+    pass
 
+def _get_image_descriptors(image, filtered_corrds, width = 5):
+    '''For each point in the returned corrds, generate patchs around the points.
+    '''
+    
+    desc = list()
+    for corrd in filtered_corrds:
+        patch = image[corrd[0] - width:corrd[0] + width + 1,
+                     corrd[1] - width:corrd[1] + width + 1].flatten()
+        desc.append(patch)
+    return desc
+
+def _match_descriptors(desc1, desc2, threshold = 0.5):
+    '''Match the first descriptor to the second descriptor using normalized corss-correlation.
+    '''
+    
+    n = len(desc1[0])
+    
+    d = -np.ones((len(desc1),len(desc2)))
+    for i in range(len(desc1)):
+        d1 = (desc1[i] - np.mean(desc1[i])) / np.std(desc1[i])
+        for j in range(len(desc2)):
+            d2 = (desc2[j] - np.mean(desc2[j])) / np.std(desc2[j])
+            ncc_val = np.sum(d1 * d2) / (n-1)
+            if ncc_val > threshold:
+                d[i,j] = ncc_val
+    ndx = np.argsort(-d)
+    matchscores = ndx[:,0]
+    return matchscores    
+        
+def _match_descriptors_twosided(desc1, desc2, threshold = 0.5):
+    '''
+    '''
+    
+    # run matches from both images
+    match12 = _match_descriptors(desc1, desc2, threshold)
+    match21 = _match_descriptors(desc2, desc1, threshold)
+    
+    ndx12 = np.where(matches12 >= 0)[0]
+    
+    # remove unsymmetric matches
+    for n in ndx12:
+        if matches21[matches12[n]] != n:
+            matches12[n] = -1
+            
+    return matches12
+        
 class Harris:
     '''Harris corner detector
     '''
     
     def __init__(self):
         self.im = None
-        self.fit_points = list()
-        self.corresponding_points = list()
+        self.fit_points = None
+        self.descriptors = None
+        self.matching_points = None
         
-    def fit(self, im, sigma = 3, min_dist = 10, threshold = 0.1):
+    def fit(self, im, sigma = 3, min_dist = 10, threshold = 0.1, desc_width = 5):
         '''Run Harris detector on images in list
         '''
-        if 'list' not in str(type(im)):
-            im = [im]
         self.im = im
-        
-        for im in self.im:
-            harris_im = _compute_harris_response(im, sigma)
-            self.fit_points.append(_get_harris_points(harris_im, min_dist, threshold))
+        harris_im = _compute_harris_response(im, sigma)
+        self.fit_points = _get_harris_points(harris_im, min_dist, threshold)
+        self.descriptors = _get_image_descriptors(im, self.fit_points, width = desc_width)
         
     def plot(self, figsize = (10,7)):
-        ''' TODO: Update to deal with list
+        '''
         '''
         _plot_harris_points(self.im, self.fit_points, figsize, cmap = 'gray')
         
@@ -134,3 +178,19 @@ class Harris:
         '''Return the images used
         '''
         return self.im
+    
+    def match_corresponding_points(self, ims, threshold, twosided = False):
+        '''Match interest points in target image to interest points in other images
+        
+        ims: list of np.array
+            images to compare as np.array; input as list
+        threshold: float
+            cross-correlation threshold
+        twosided: bool
+            True: compare images twosided, False (default): compare from target image only
+        
+        return: list
+            matching corresponding points based on threshold
+        '''
+        
+        
