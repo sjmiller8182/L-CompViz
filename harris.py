@@ -173,6 +173,11 @@ class Harris:
         '''Return the Harris points
         '''
         return self.fit_points
+    
+    def get_descriptors(self):
+        '''Return calculated descriptors
+        '''
+        return self.descriptors
         
     def get_im()
         '''Return the images used
@@ -193,4 +198,4 @@ class Harris:
             matching corresponding points based on threshold
         '''
         
-        
+        pass
