@@ -179,7 +179,7 @@ class Harris:
         '''
         return self.descriptors
         
-    def get_im()
+    def get_im(self):
         '''Return the images used
         '''
         return self.im
